@@ -5,6 +5,30 @@ This repository contains Team Antigravity's final submission for the Redrob Hack
 
 ---
 
+### Repository Structure
+
+```text
+redrob-v4/
+├── data/
+│   └── job_description.txt         # The original job description text used for matching
+├── outputs/
+│   └── team_antigravity.csv        # Final top 100 ranked candidates with transparent reasoning
+├── precompute/
+│   ├── 01_parse_candidates.py      # Parses raw JSONL candidates into structured objects
+│   ├── 02_extract_features.py      # Core logic engine containing scoring and disqualifier rules
+│   ├── 03_build_bm25.py            # Builds sparse keyword BM25 index
+│   ├── 04_build_embeddings.py      # Generates 384-dimensional dense semantic vectors
+│   └── artifacts/                  # Local directory for large generated data (ignored in Git)
+├── sandbox/
+│   └── app.py                      # Local UI test app to visually inspect and debug outputs
+├── generate_reasoning.py           # Generates factual reasoning strings for candidate scores
+├── rank.py                         # Final ensemble script calculating scores and saving CSV
+├── validate_submission.py          # Validates final output schema and constraints
+└── README.md                       # This file
+```
+
+---
+
 ### 1. Architectural Approach & Overview
 
 The system processes candidate data (in JSONL format) through a multi-stage funnel. Rather than relying entirely on black-box LLM calls or simplistic keyword matching, our pipeline employs a robust **three-signal ensemble architecture**:
