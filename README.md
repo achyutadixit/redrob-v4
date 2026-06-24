@@ -47,6 +47,19 @@ redrob-v4/
 
 ---
 
+## ⚠️ Dataset Availability Notice
+
+The raw candidate resume dataset (`data/candidates.jsonl`, ~465 MB) contains proprietary candidate profiles and is excluded from this repository via `.gitignore` to comply with GitHub's file size limits. 
+
+To run the ranking pipeline locally, you must obtain the `candidates.jsonl` file and place it in the `data/` directory:
+```bash
+redrob-v4/
+└── data/
+    └── candidates.jsonl  # Place the raw dataset here
+```
+
+---
+
 ## How the Pipeline Works
 
 The pipeline runs as a sequence of 4 precompute stages followed by a final ranking and output step. Each stage reads from the previous stage's artifacts and writes its own, keeping memory usage bounded and allowing individual stages to be re-run independently.
@@ -265,6 +278,9 @@ Education (degrees, universities), certifications, compensation history, and spo
 
 ## How to Reproduce
 
+1. **Place the dataset**: Ensure `data/candidates.jsonl` is present in the `data/` folder (see the **Dataset Availability Notice** above).
+
+2. **Set up the environment**:
 ```bash
 # Create and activate virtual environment
 python -m venv .venv
@@ -272,16 +288,40 @@ source .venv/bin/activate
 
 # Install dependencies
 pip install sentence-transformers rank_bm25 numpy
-
-# Run the full pipeline (stages must run in order)
-python precompute/01_parse_candidates.py       # ~2 min
-python precompute/02_extract_features.py       # ~2 min
-python precompute/03_build_bm25.py             # ~3 min
-python precompute/04_build_embeddings.py       # ~50-60 min (CPU)
-python rank.py                                 # ~1 min
-
-# Validate final output
-python validate_submission.py
 ```
+
+3. **Run the pipeline**:
+   Choose **Option A** (full pipeline run) or **Option B** (fast run if you already have precomputed embeddings).
+
+   #### Option A: Full Pipeline (Generates new embeddings)
+   Run all stages sequentially:
+   ```bash
+   python precompute/01_parse_candidates.py       # ~2 min: Parses raw JSONL
+   python precompute/02_extract_features.py       # ~2 min: Rules-based feature scoring
+   python precompute/03_build_bm25.py             # ~3 min: Tokenizes & indexes with BM25
+   python precompute/04_build_embeddings.py       # ~50-60 min (CPU): Generates embeddings
+   python rank.py                                 # ~1 min: Runs final ensemble and formats CSV
+   ```
+
+   #### Option B: Fast Run (Using precomputed embeddings)
+   If you already have the precomputed embedding files (`embeddings.npy` and `jd_embedding.npy`), you can skip the time-consuming Stage 4:
+   1. Create the `precompute/artifacts/` folder:
+      ```bash
+      mkdir -p precompute/artifacts
+      ```
+   2. Place `embeddings.npy` and `jd_embedding.npy` into `precompute/artifacts/`.
+   3. Run the parsing, feature extraction, BM25 indexing, and final ranking:
+      ```bash
+      python precompute/01_parse_candidates.py       # ~2 min
+      python precompute/02_extract_features.py       # ~2 min
+      python precompute/03_build_bm25.py             # ~3 min
+      # Skip python precompute/04_build_embeddings.py
+      python rank.py                                 # ~1 min
+      ```
+
+4. **Validate output**:
+   ```bash
+   python validate_submission.py
+   ```
 
 > **Note:** `04_build_embeddings.py` is the bottleneck. It encodes all 100,000 candidates into 384-dimensional vectors using PyTorch on CPU. GPU acceleration is supported by `sentence-transformers` if available. Generated artifacts (`.jsonl`, `.npy`, `.pkl`) are gitignored due to their size.
