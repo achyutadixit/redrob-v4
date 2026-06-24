@@ -111,16 +111,6 @@ We also extract bonus signals including LoRA fine-tuning, Learning-to-Rank (LTR)
 - **p99**: 0.7671
 - **p100**: 0.7808
 
-*Disqualification statistics across all 100,000 raw candidates:*
-- **Total Disqualified (Score = 0.0)**: 74,094
-  - `is_honeypot`: 17,355
-  - `is_consulting_only`: 8,940
-  - `is_pure_research`: 0
-  - `is_llm_wrapper_only`: 64,568
-  - `is_not_coding_ic`: 0
-  - `is_wrong_domain`: 0
-
-*(Note: Candidates can trigger multiple disqualifier flags simultaneously).*
 
 ---
 
