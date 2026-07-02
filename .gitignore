@@ -9,3 +9,4 @@ precompute/artifacts/candidates_parsed.pkl
 __pycache__/
 *.pyc
 .venv/
+__pycache__/
