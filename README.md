@@ -26,7 +26,6 @@ An automated, multi-signal candidate ranking pipeline that processes **100,000 r
 ```text
 redrob-v4/
 ├── data/
-│   ├── candidates.jsonl              # Raw 100K candidate dataset (gitignored, ~465 MB)
 │   └── job_description.txt           # The target JD used for all matching and scoring
 ├── outputs/
 │   └── team_antigravity.csv          # Final ranked top 100 with score + reasoning per row
@@ -302,7 +301,7 @@ Education (degrees, universities), certifications, compensation history, and spo
 
 ### Option A: Fast Run (Pre-computed Artifacts via Git LFS)
 
-If you have `data/candidates.jsonl`, you can skip the 50–60 minute embedding step because the precomputed artifacts are already in this repo:
+If you have `../candidates.jsonl`, you can skip the 50–60 minute embedding step because the precomputed artifacts are already in this repo:
 
 ```bash
 # 1. Install Git LFS and pull the artifacts
