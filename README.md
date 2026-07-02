@@ -70,12 +70,12 @@ This downloads the LFS-tracked files and lets you skip directly to `rank.py` wit
 
 ### Raw Candidate Dataset
 
-The raw candidate resume dataset (`data/candidates.jsonl`, ~465 MB) contains proprietary candidate profiles and is excluded from this repository via `.gitignore`. To run stages 1–4, obtain the file and place it at:
+The raw candidate resume dataset (`candidates.jsonl`, ~465 MB) contains proprietary candidate profiles and is excluded from this repository via `.gitignore`. To run the pipeline from scratch, place the `candidates.jsonl` file in the **parent directory** of the repository:
 
 ```bash
-redrob-v4/
-└── data/
-    └── candidates.jsonl  # Place the raw dataset here
+/some/path/
+├── redrob-v4/            # This repository
+└── candidates.jsonl      # Place the raw dataset here
 ```
 
 `candidates_parsed.pkl` (398 MB) is also gitignored as it exceeds LFS free-tier storage limits. It is fully reproducible by running `python precompute/01_parse_candidates.py`.
@@ -315,10 +315,10 @@ source .venv/bin/activate
 pip install sentence-transformers rank_bm25 numpy
 
 # 3. Re-generate only candidates_parsed.pkl (gitignored, 398 MB)
-python precompute/01_parse_candidates.py --candidates data/candidates.jsonl  # ~2 min
+python precompute/01_parse_candidates.py --candidates ../candidates.jsonl  # ~2 min
 
 # 4. Run final ranking
-python rank.py --out outputs/team_antigravity.csv                              # ~1 min
+python rank.py --out ../submission.csv                                     # ~1 min
 
 # 5. Validate output
 python validate_submission.py
@@ -330,7 +330,7 @@ All LFS files — `embeddings.npy`, `jd_embedding.npy`, `bm25_scores.pkl`, `feat
 
 ### Option B: Full Pipeline Run (from scratch)
 
-Use this if you want to regenerate every artifact from a raw data file. This single command will run all precompute stages and output the final ranking:
+Use this if you want to regenerate every artifact from a raw data file. This single command will run all precompute stages and output the final ranking to the parent directory:
 
 ```bash
 # 1. Set up environment
@@ -339,7 +339,7 @@ source .venv/bin/activate
 pip install sentence-transformers rank_bm25 numpy
 
 # 2. Run the pipeline (Stages 1-5 automatically)
-python rank.py --candidates data/candidates.jsonl --out outputs/team_antigravity.csv
+python rank.py --candidates ../candidates.jsonl --out ../submission.csv
 
 # 3. Validate output
 python validate_submission.py

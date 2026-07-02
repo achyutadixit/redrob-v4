@@ -38,8 +38,8 @@ def compute_score(features):
 
 def main():
     parser = argparse.ArgumentParser(description="Rank candidates for the Redrob Hackathon")
-    parser.add_argument('--candidates', type=str, help='Path to candidates.jsonl. If provided, runs the full precompute pipeline.')
-    parser.add_argument('--out', type=str, default='outputs/team_antigravity.csv', help='Path to output CSV')
+    parser.add_argument('--candidates', type=str, help='Path to candidates.jsonl. If provided, runs the full precompute pipeline.', default='../candidates.jsonl')
+    parser.add_argument('--out', type=str, default='../submission.csv', help='Path to output CSV')
     args = parser.parse_args()
 
     if args.candidates:

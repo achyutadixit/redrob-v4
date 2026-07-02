@@ -39,7 +39,7 @@ def check_honeypot(cand):
 def main():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--candidates', type=str, default='data/candidates.jsonl')
+    parser.add_argument('--candidates', type=str, default='../candidates.jsonl')
     args = parser.parse_args()
     data_path = args.candidates
     
