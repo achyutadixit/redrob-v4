@@ -37,7 +37,11 @@ def check_honeypot(cand):
     return len(reasons) > 0, reasons
 
 def main():
-    data_path = 'data/candidates.jsonl'
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--candidates', type=str, default='data/candidates.jsonl')
+    args = parser.parse_args()
+    data_path = args.candidates
     
     candidates = []
     with open(data_path, 'r') as f:

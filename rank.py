@@ -3,6 +3,8 @@ import numpy as np
 import csv
 import generate_reasoning
 import os
+import argparse
+import subprocess
 
 def compute_score(features):
     # Hard disqualifiers
@@ -35,6 +37,18 @@ def compute_score(features):
     return max(0.0, min(1.0, base * multiplier))
 
 def main():
+    parser = argparse.ArgumentParser(description="Rank candidates for the Redrob Hackathon")
+    parser.add_argument('--candidates', type=str, help='Path to candidates.jsonl. If provided, runs the full precompute pipeline.')
+    parser.add_argument('--out', type=str, default='outputs/team_antigravity.csv', help='Path to output CSV')
+    args = parser.parse_args()
+
+    if args.candidates:
+        print(f"Running full precompute pipeline for candidates: {args.candidates}")
+        subprocess.run(["python", "precompute/01_parse_candidates.py", "--candidates", args.candidates], check=True)
+        subprocess.run(["python", "precompute/02_extract_features.py"], check=True)
+        subprocess.run(["python", "precompute/03_build_bm25.py"], check=True)
+        subprocess.run(["python", "precompute/04_build_embeddings.py"], check=True)
+
     print("Loading artifacts...")
     with open('precompute/artifacts/candidates_parsed.pkl', 'rb') as f:
         candidates = pickle.load(f)
@@ -92,13 +106,13 @@ def main():
             'reasoning': reasoning
         })
         
-    os.makedirs('outputs', exist_ok=True)
-    with open('outputs/team_antigravity.csv', 'w', newline='') as f:
+    os.makedirs(os.path.dirname(args.out) or '.', exist_ok=True)
+    with open(args.out, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=['rank', 'candidate_id', 'score', 'reasoning'])
         writer.writeheader()
         writer.writerows(output_rows)
         
-    print("Done. Saved to outputs/team_antigravity.csv")
+    print(f"Done. Saved to {args.out}")
 
 if __name__ == '__main__':
     main()

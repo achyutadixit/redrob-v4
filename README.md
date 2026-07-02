@@ -315,10 +315,10 @@ source .venv/bin/activate
 pip install sentence-transformers rank_bm25 numpy
 
 # 3. Re-generate only candidates_parsed.pkl (gitignored, 398 MB)
-python precompute/01_parse_candidates.py   # ~2 min
+python precompute/01_parse_candidates.py --candidates data/candidates.jsonl  # ~2 min
 
 # 4. Run final ranking
-python rank.py                             # ~1 min
+python rank.py --out outputs/team_antigravity.csv                              # ~1 min
 
 # 5. Validate output
 python validate_submission.py
@@ -330,7 +330,7 @@ All LFS files — `embeddings.npy`, `jd_embedding.npy`, `bm25_scores.pkl`, `feat
 
 ### Option B: Full Pipeline Run (from scratch)
 
-Use this if you want to regenerate every artifact from the raw data:
+Use this if you want to regenerate every artifact from a raw data file. This single command will run all precompute stages and output the final ranking:
 
 ```bash
 # 1. Set up environment
@@ -338,12 +338,8 @@ python -m venv .venv
 source .venv/bin/activate
 pip install sentence-transformers rank_bm25 numpy
 
-# 2. Ensure data/candidates.jsonl is present, then run all stages
-python precompute/01_parse_candidates.py       # ~2 min:  Parses raw JSONL
-python precompute/02_extract_features.py       # ~2 min:  Rules-based feature scoring
-python precompute/03_build_bm25.py             # ~3 min:  Tokenizes & indexes with BM25
-python precompute/04_build_embeddings.py       # ~50-60 min (CPU): Generates embeddings
-python rank.py                                 # ~1 min:  Runs final ensemble and formats CSV
+# 2. Run the pipeline (Stages 1-5 automatically)
+python rank.py --candidates data/candidates.jsonl --out outputs/team_antigravity.csv
 
 # 3. Validate output
 python validate_submission.py
