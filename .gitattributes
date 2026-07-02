@@ -1,0 +1,2 @@
+precompute/artifacts/*.npy filter=lfs diff=lfs merge=lfs -text
+precompute/artifacts/*.pkl filter=lfs diff=lfs merge=lfs -text

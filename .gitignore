@@ -1,3 +1,11 @@
+# Raw candidate data — proprietary and ~465 MB
 data/candidates.jsonl
-precompute/artifacts/*.pkl
-precompute/artifacts/*.npy
+
+# Derived intermediate — 398 MB, too large even for Git LFS free tier.
+# Regenerate via: python precompute/01_parse_candidates.py
+precompute/artifacts/candidates_parsed.pkl
+
+# Python runtime
+__pycache__/
+*.pyc
+.venv/
