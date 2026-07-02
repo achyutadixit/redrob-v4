@@ -9,10 +9,13 @@ def compute_bm25(corpus, query):
         bm25 = BM25Okapi(tokenized_corpus)
         tokenized_query = query.split(" ")
         doc_scores = bm25.get_scores(tokenized_query)
+        # Ensure no negative scores (happens in Okapi if term in >50% of docs)
+        doc_scores = np.maximum(doc_scores, 0.0)
         # Normalize to 0-1
         if len(doc_scores) > 0 and max(doc_scores) > 0:
             doc_scores = doc_scores / max(doc_scores)
         return doc_scores
+
     except ImportError:
         # Fallback to simple TF-IDF if rank_bm25 is missing
         from sklearn.feature_extraction.text import TfidfVectorizer
