@@ -4,6 +4,12 @@
 
 Processes 100,000 raw candidate resumes and surfaces the top 100 best-fit matches using a three-signal ensemble — deterministic feature rules, dense semantic embeddings, and BM25 keyword matching.
 
+## Sandbox / Demo 🚀
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/achyutadixit/redrob-v4/blob/master/sandbox/sandbox.ipynb)
+
+Verify the pipeline end-to-end using our Google Colab sandbox. It accepts a small candidate sample (`<= 100` records), automatically runs all pipeline stages (including generating dense embeddings), and outputs the final ranked CSV — all well within the 5-minute CPU compute budget.
+
 ---
 
 ## Quickstart
@@ -88,16 +94,16 @@ Final Score = 0.50 × Feature Score + 0.30 × Embedding Score + 0.20 × BM25 Sco
 
 | Rank | ID | Score | Title | Exp | Location | Notice |
 |---|---|---|---|---|---|---|
-| 1 | CAND_0081846 | 0.7808 | Lead AI Engineer | 6.7 yr | Jaipur | 30d |
-| 2 | CAND_0055905 | 0.7670 | Senior ML Engineer | 8.1 yr | London | 30d |
-| 3 | CAND_0086022 | 0.7482 | Senior Applied Scientist | 5.3 yr | Kolkata | 0d |
-| 4 | CAND_0079387 | 0.7426 | AI Engineer | 6.9 yr | Trivandrum | 30d |
-| 5 | CAND_0077337 | 0.7369 | Staff ML Engineer | 7.0 yr | Kochi | 60d |
-| 6 | CAND_0075249 | 0.7138 | Applied ML Engineer | 6.2 yr | Ahmedabad | 45d |
-| 7 | CAND_0096172 | 0.7088 | NLP Engineer | 5.2 yr | Chennai | 45d |
-| 8 | CAND_0046525 | 0.7083 | Senior ML Engineer | 6.1 yr | Pune | 60d |
-| 9 | CAND_0030953 | 0.7041 | Search Engineer | 7.8 yr | Chennai | 45d |
-| 10 | CAND_0062247 | 0.7039 | AI Engineer | 7.3 yr | Kochi | 30d |
+| 1 | CAND_0039754 | 0.7811 | Senior Applied Scientist | 16.2 yr | Indore | 0d |
+| 2 | CAND_0081846 | 0.7808 | Lead AI Engineer | 6.7 yr | Jaipur | 30d |
+| 3 | CAND_0055905 | 0.7670 | Senior ML Engineer | 8.1 yr | London | 30d |
+| 4 | CAND_0086022 | 0.7482 | Senior Applied Scientist | 5.3 yr | Kolkata | 0d |
+| 5 | CAND_0079387 | 0.7426 | AI Engineer | 6.9 yr | Trivandrum | 30d |
+| 6 | CAND_0077337 | 0.7354 | Staff ML Engineer | 7.0 yr | Kochi | 60d |
+| 7 | CAND_0075249 | 0.7138 | Applied ML Engineer | 6.2 yr | Ahmedabad | 45d |
+| 8 | CAND_0096172 | 0.7088 | NLP Engineer | 5.2 yr | Chennai | 45d |
+| 9 | CAND_0046525 | 0.7083 | Senior ML Engineer | 6.1 yr | Pune | 60d |
+| 10 | CAND_0080766 | 0.7067 | Staff ML Engineer | 8.8 yr | Delhi | 60d |
 
 ---
 
