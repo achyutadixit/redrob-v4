@@ -35,28 +35,50 @@ redrob-v4/
 │   ├── 02_extract_features.py        # Stage 2: Deterministic feature extraction & disqualifiers
 │   ├── 03_build_bm25.py              # Stage 3: Build BM25 index & score against JD keywords
 │   ├── 04_build_embeddings.py        # Stage 4: Encode all candidates into 384-dim vectors
-│   └── artifacts/                    # Generated intermediates: .pkl, .npy (gitignored)
+│   └── artifacts/                    # Pre-computed intermediates tracked via Git LFS
+│       ├── embeddings.npy            #   ↳ 384-dim candidate vectors (147 MB, LFS)
+│       ├── jd_embedding.npy          #   ↳ 384-dim JD vector (4 KB, LFS)
+│       ├── bm25_scores.pkl           #   ↳ BM25 score dict per candidate (2.3 MB, LFS)
+│       ├── feature_matrix.pkl        #   ↳ Feature dicts for all candidates (17 MB, LFS)
+│       └── honeypots_flagged.json    #   ↳ Flagged honeypot candidate IDs (1.2 MB, plain JSON)
+│       # candidates_parsed.pkl is gitignored (398 MB) — regenerate with 01_parse_candidates.py
 ├── sandbox/
 │   └── app.py                        # Local test UI for visual debugging
+├── .gitattributes                    # Git LFS tracking rules for *.pkl and *.npy under precompute/
 ├── generate_reasoning.py             # Produces transparent, factual justification strings
 ├── rank.py                           # Ensemble aggregation → final CSV output
 ├── validate_submission.py            # Validates output against hackathon constraints
-├── .gitignore                        # Excludes large data artifacts from version control
+├── .gitignore                        # Excludes raw dataset and largest intermediate from version control
 └── README.md
 ```
 
 ---
 
-## ⚠️ Dataset Availability Notice
+## ⚠️ Dataset & Artifact Availability
 
-The raw candidate resume dataset (`data/candidates.jsonl`, ~465 MB) contains proprietary candidate profiles and is excluded from this repository via `.gitignore` to comply with GitHub's file size limits. 
+### Pre-computed Artifacts (Git LFS)
 
-To run the ranking pipeline locally, you must obtain the `candidates.jsonl` file and place it in the `data/` directory:
+All derived artifacts — `embeddings.npy`, `jd_embedding.npy`, `bm25_scores.pkl`, `feature_matrix.pkl` — are committed to this repository and tracked via **Git LFS**. After cloning, run:
+
+```bash
+git lfs pull
+```
+
+This downloads the LFS-tracked files and lets you skip directly to `rank.py` without rerunning the 50–60 minute embedding step.
+
+> **Requires Git LFS:** Install from https://git-lfs.com or via your package manager (`sudo apt install git-lfs`).
+
+### Raw Candidate Dataset
+
+The raw candidate resume dataset (`data/candidates.jsonl`, ~465 MB) contains proprietary candidate profiles and is excluded from this repository via `.gitignore`. To run stages 1–4, obtain the file and place it at:
+
 ```bash
 redrob-v4/
 └── data/
     └── candidates.jsonl  # Place the raw dataset here
 ```
+
+`candidates_parsed.pkl` (398 MB) is also gitignored as it exceeds LFS free-tier storage limits. It is fully reproducible by running `python precompute/01_parse_candidates.py`.
 
 ---
 
@@ -278,50 +300,53 @@ Education (degrees, universities), certifications, compensation history, and spo
 
 ## How to Reproduce
 
-1. **Place the dataset**: Ensure `data/candidates.jsonl` is present in the `data/` folder (see the **Dataset Availability Notice** above).
+### Option A: Fast Run (Pre-computed Artifacts via Git LFS)
 
-2. **Set up the environment**:
+If you have `data/candidates.jsonl`, you can skip the 50–60 minute embedding step because the precomputed artifacts are already in this repo:
+
 ```bash
-# Create and activate virtual environment
+# 1. Install Git LFS and pull the artifacts
+git lfs install
+git lfs pull
+
+# 2. Set up Python environment
 python -m venv .venv
 source .venv/bin/activate
-
-# Install dependencies
 pip install sentence-transformers rank_bm25 numpy
+
+# 3. Re-generate only candidates_parsed.pkl (gitignored, 398 MB)
+python precompute/01_parse_candidates.py   # ~2 min
+
+# 4. Run final ranking
+python rank.py                             # ~1 min
+
+# 5. Validate output
+python validate_submission.py
 ```
 
-3. **Run the pipeline**:
-   Choose **Option A** (full pipeline run) or **Option B** (fast run if you already have precomputed embeddings).
+All LFS files — `embeddings.npy`, `jd_embedding.npy`, `bm25_scores.pkl`, `feature_matrix.pkl` — are pulled in step 1. Only `candidates_parsed.pkl` needs to be regenerated locally because it is 398 MB and exceeds free-tier LFS quotas.
 
-   #### Option A: Full Pipeline (Generates new embeddings)
-   Run all stages sequentially:
-   ```bash
-   python precompute/01_parse_candidates.py       # ~2 min: Parses raw JSONL
-   python precompute/02_extract_features.py       # ~2 min: Rules-based feature scoring
-   python precompute/03_build_bm25.py             # ~3 min: Tokenizes & indexes with BM25
-   python precompute/04_build_embeddings.py       # ~50-60 min (CPU): Generates embeddings
-   python rank.py                                 # ~1 min: Runs final ensemble and formats CSV
-   ```
+---
 
-   #### Option B: Fast Run (Using precomputed embeddings)
-   If you already have the precomputed embedding files (`embeddings.npy` and `jd_embedding.npy`), you can skip the time-consuming Stage 4:
-   1. Create the `precompute/artifacts/` folder:
-      ```bash
-      mkdir -p precompute/artifacts
-      ```
-   2. Place `embeddings.npy` and `jd_embedding.npy` into `precompute/artifacts/`.
-   3. Run the parsing, feature extraction, BM25 indexing, and final ranking:
-      ```bash
-      python precompute/01_parse_candidates.py       # ~2 min
-      python precompute/02_extract_features.py       # ~2 min
-      python precompute/03_build_bm25.py             # ~3 min
-      # Skip python precompute/04_build_embeddings.py
-      python rank.py                                 # ~1 min
-      ```
+### Option B: Full Pipeline Run (from scratch)
 
-4. **Validate output**:
-   ```bash
-   python validate_submission.py
-   ```
+Use this if you want to regenerate every artifact from the raw data:
 
-> **Note:** `04_build_embeddings.py` is the bottleneck. It encodes all 100,000 candidates into 384-dimensional vectors using PyTorch on CPU. GPU acceleration is supported by `sentence-transformers` if available. Generated artifacts (`.jsonl`, `.npy`, `.pkl`) are gitignored due to their size.
+```bash
+# 1. Set up environment
+python -m venv .venv
+source .venv/bin/activate
+pip install sentence-transformers rank_bm25 numpy
+
+# 2. Ensure data/candidates.jsonl is present, then run all stages
+python precompute/01_parse_candidates.py       # ~2 min:  Parses raw JSONL
+python precompute/02_extract_features.py       # ~2 min:  Rules-based feature scoring
+python precompute/03_build_bm25.py             # ~3 min:  Tokenizes & indexes with BM25
+python precompute/04_build_embeddings.py       # ~50-60 min (CPU): Generates embeddings
+python rank.py                                 # ~1 min:  Runs final ensemble and formats CSV
+
+# 3. Validate output
+python validate_submission.py
+```
+
+> **Note:** `04_build_embeddings.py` is the bottleneck. It encodes all 100,000 candidates using `all-MiniLM-L6-v2` on CPU. GPU acceleration is supported by `sentence-transformers` if CUDA is available.
