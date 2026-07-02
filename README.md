@@ -34,19 +34,18 @@ redrob-v4/
 │   ├── 02_extract_features.py        # Stage 2: Deterministic feature extraction & disqualifiers
 │   ├── 03_build_bm25.py              # Stage 3: Build BM25 index & score against JD keywords
 │   ├── 04_build_embeddings.py        # Stage 4: Encode all candidates into 384-dim vectors
-│   └── artifacts/                    # Pre-computed intermediates (see Artifact Availability below)
-│       ├── embeddings.npy            #   ↳ 384-dim candidate vectors (147 MB)
-│       ├── jd_embedding.npy          #   ↳ 384-dim JD vector (4 KB)
-│       ├── bm25_scores.pkl           #   ↳ BM25 score dict per candidate (2.3 MB)
-│       ├── feature_matrix.pkl        #   ↳ Feature dicts for all candidates (17 MB)
-│       └── honeypots_flagged.json    #   ↳ Flagged honeypot candidate IDs (1.2 MB)
+│   └── artifacts/                    # Pre-computed intermediates tracked via Git LFS
+│       ├── embeddings.npy            #   ↳ 384-dim candidate vectors (147 MB, LFS)
+│       ├── jd_embedding.npy          #   ↳ 384-dim JD vector (4 KB, LFS)
+│       ├── bm25_scores.pkl           #   ↳ BM25 score dict per candidate (2.3 MB, LFS)
+│       ├── feature_matrix.pkl        #   ↳ Feature dicts for all candidates (17 MB, LFS)
+│       └── honeypots_flagged.json    #   ↳ Flagged honeypot candidate IDs (1.2 MB, plain JSON)
 │       # candidates_parsed.pkl is excluded (~398 MB) — auto-regenerated from candidates.jsonl
 ├── sandbox/
 │   └── app.py                        # Local test UI for visual debugging
 ├── .gitattributes                    # Git LFS tracking rules for *.pkl and *.npy under precompute/
 ├── generate_reasoning.py             # Produces transparent, factual justification strings
 ├── rank.py                           # Ensemble aggregation → final CSV output
-├── upload_artifacts.py               # One-time script to upload artifacts to Hugging Face Hub
 ├── validate_submission.py            # Validates output against hackathon constraints
 ├── .gitignore                        # Excludes raw dataset and largest intermediate from version control
 └── README.md
@@ -56,29 +55,16 @@ redrob-v4/
 
 ## ⚠️ Dataset & Artifact Availability
 
-The four derived artifacts (`embeddings.npy`, `jd_embedding.npy`, `bm25_scores.pkl`, `feature_matrix.pkl`) are large binary files. We host them in two places so you can choose the method that works best:
+### Pre-computed Artifacts (Git LFS)
 
-### Option 1 (Recommended): Hugging Face Hub
-
-All artifacts are published to a public Hugging Face dataset repo. `rank.py` can download them automatically with a single flag — **no Git LFS installation required**:
-
-```bash
-pip install huggingface_hub
-python rank.py --hf-repo achyutadixit/redrob-v4-artifacts --candidates ../candidates.jsonl --out ../submission.csv
-```
-
-This downloads any missing artifacts on-the-fly from the HF Hub, then runs stage 1 (candidate parsing, ~2 min), and produces the final CSV. Total time: **~3 minutes** (excluding the one-time artifact download).
-
-### Option 2 (Backup): Git LFS
-
-Artifacts are also tracked in this repository via **Git LFS**. After cloning, run:
+All derived artifacts — `embeddings.npy`, `jd_embedding.npy`, `bm25_scores.pkl`, `feature_matrix.pkl` — are committed to this repository and tracked via **Git LFS**. After cloning, run:
 
 ```bash
 git lfs install
 git lfs pull
 ```
 
-This downloads the LFS-tracked files and lets you skip directly to `rank.py`.
+This downloads the LFS-tracked files and lets you skip the 50–60 minute embedding step.
 
 > **Requires Git LFS:** Install from https://git-lfs.com or via `sudo apt install git-lfs`.
 
@@ -92,7 +78,7 @@ The raw candidate resume dataset (`candidates.jsonl`, ~465 MB) is excluded from 
 └── candidates.jsonl      # Place the raw dataset here
 ```
 
-`candidates_parsed.pkl` (398 MB) is also excluded — `rank.py` auto-regenerates it from `candidates.jsonl` when needed (~2 min).
+`candidates_parsed.pkl` (398 MB) is also excluded — `rank.py` auto-regenerates it from `candidates.jsonl` on first run (~2 min).
 
 ---
 
@@ -314,30 +300,9 @@ Education (degrees, universities), certifications, compensation history, and spo
 
 ## How to Reproduce
 
-### Option A: Fast Run via Hugging Face Hub (Recommended, single command)
+### Option A: Fast Run (Pre-computed Artifacts via Git LFS)
 
-This downloads the pre-computed artifacts automatically from HF Hub, regenerates the candidate index from your raw dataset (~2 min), and produces the final CSV.
-
-```bash
-# 1. Set up Python environment
-python -m venv .venv
-source .venv/bin/activate
-pip install sentence-transformers rank_bm25 numpy huggingface_hub
-
-# 2. Run everything in one command
-python rank.py --hf-repo achyutadixit/redrob-v4-artifacts --candidates ../candidates.jsonl --out ../submission.csv
-
-# 3. Validate output
-python validate_submission.py
-```
-
-**Total time: ~3 minutes** (after a one-time artifact download of ~167 MB from HF Hub).
-
----
-
-### Option B: Fast Run via Git LFS
-
-If you already have Git LFS installed and have cloned the repo with LFS artifacts:
+Pull the pre-computed artifacts and run a single command to produce the final CSV:
 
 ```bash
 # 1. Pull LFS artifacts
@@ -348,18 +313,20 @@ python -m venv .venv
 source .venv/bin/activate
 pip install sentence-transformers rank_bm25 numpy
 
-# 3. Re-generate candidates_parsed.pkl from raw data (auto-detected)
+# 3. Run ranking (auto-parses candidates on first run, ~2 min + ~1 min ranking)
 python rank.py --candidates ../candidates.jsonl --out ../submission.csv
 
 # 4. Validate
 python validate_submission.py
 ```
 
+`candidates_parsed.pkl` is auto-generated on first run. Subsequent runs skip stage 1.
+
 ---
 
-### Option C: Full Pipeline from Scratch (~60 min)
+### Option B: Full Pipeline from Scratch (~60 min)
 
-Use this if you want to regenerate every artifact from the raw dataset:
+Use this to regenerate every artifact from the raw dataset:
 
 ```bash
 # 1. Set up environment
@@ -375,18 +342,3 @@ python validate_submission.py
 ```
 
 > **Note:** `04_build_embeddings.py` is the bottleneck. It encodes all 100,000 candidates using `all-MiniLM-L6-v2` on CPU. GPU acceleration is supported by `sentence-transformers` if CUDA is available.
-
----
-
-## Why Hugging Face Hub over Git LFS?
-
-| | Git LFS (GitHub free tier) | Hugging Face Hub |
-|---|---|---|
-| **Storage** | 1 GB hard limit | Unlimited (public repos) |
-| **Bandwidth** | 1 GB/month, throttled after | Unlimited |
-| **Auth required to download** | No | No (public repos) |
-| **Resume partial downloads** | No | Yes |
-| **ML-native tooling** | No | Yes (`huggingface_hub` library) |
-| **Direct URL access** | No | Yes (CDN-backed) |
-
-For hackathon reproducibility, HF Hub is strictly superior. The `--hf-repo` flag in `rank.py` auto-downloads any missing artifacts, making the entire workflow a single command with no manual `git lfs pull` required.
