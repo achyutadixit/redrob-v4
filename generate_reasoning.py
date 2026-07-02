@@ -58,19 +58,19 @@ def generate(rank, candidate, features, feature_score, emb_score, bm25_score, fi
     sentences = []
 
     intro_opts_glowing = [
-        f"This candidate is an exceptionally strong fit, bringing {years_exp} years of experience.",
+        f"This candidate is an exceptionally strong fit, bringing {years_exp} years of experience from {current_company}.",
         f"Ranking in the top tier, this {current_title} at {current_company} demonstrates deep alignment with our core requirements.",
-        f"A standout profile with {years_exp} years of industry experience, currently serving as a {current_title}."
+        f"A standout profile with {years_exp} years of industry experience, currently serving as a {current_title} at {current_company}."
     ]
     intro_opts_solid = [
         f"A solid candidate with {years_exp} years of experience, presently at {current_company}.",
-        f"Demonstrates good potential as a {current_title} with {years_exp} years of relevant background.",
-        f"This candidate has a respectable track record spanning {years_exp} years, currently working at {current_company}."
+        f"Demonstrates good potential as a {current_title} with {years_exp} years of relevant background, currently at {current_company}.",
+        f"This candidate has a respectable track record spanning {years_exp} years, working most recently at {current_company}."
     ]
     intro_opts_marginal = [
-        f"While they made the top 100, this {current_title} presents a mixed profile despite {years_exp} years of experience.",
-        f"A borderline candidate with {years_exp} years of experience at {current_company}.",
-        f"Barely making the cut, this profile offers some relevant skills over {years_exp} years but has notable gaps."
+        f"While they made the top 100, this {current_title} at {current_company} presents a mixed profile despite {years_exp} years of experience.",
+        f"A borderline candidate with {years_exp} years of experience, currently at {current_company}.",
+        f"Barely making the cut, this profile from {current_company} offers some relevant skills over {years_exp} years but has notable gaps."
     ]
     
     if tone == "glowing": sentences.append(rng.choice(intro_opts_glowing))
